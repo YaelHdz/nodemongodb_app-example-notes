@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
+const User = require("../models/User");
+
 router.get("/users/signin", (req, res) => {
   res.render("users/signin");
 });
@@ -9,7 +11,7 @@ router.get("/users/signup", (req, res) => {
   res.render("users/signup");
 });
 
-router.post("/users/signup", (req, res) => {
+router.post("/users/signup", async (req, res) => {
   const { name, email, password, confirm_password } = req.body;
   const errors = [];
   if (name.length <= 0) {
@@ -30,6 +32,11 @@ router.post("/users/signup", (req, res) => {
       confirm_password,
     });
   } else {
+    const newUser = new User({ name, email, password });
+    newUser.password = await newUser.encrypPassword(password);
+    await newUser.save();
+    req.flash("success_msg", "You are registered");
+    res.redirect("/users/signin");
   }
 });
 
